@@ -1,0 +1,65 @@
+{
+	"compiler": {
+		"version": "0.8.7+commit.e28d00a7"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "description",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "creator",
+						"type": "address"
+					}
+				],
+				"name": "LogCollateral",
+				"type": "event"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/EventSafe.sol": "EventSafe"
+		},
+		"evmVersion": "london",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/EventSafe.sol": {
+			"keccak256": "0x432593f089d670380086901983b07e96c9ca0440f10c6aa473f18af471eb7b4b",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://ab15930d4a49accc7bc28a92647a25aff673bee22403166a1a411e557856f9ec",
+				"dweb:/ipfs/Qmc7WgzQrnkZgVXoP29tuGY63z8GSszJmELCYV4ncCVG34"
+			]
+		}
+	},
+	"version": 1
+}
