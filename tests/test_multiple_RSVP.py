@@ -18,7 +18,7 @@ def test_multiple_stake(accounts, RSVP_Event_module_scope, EventCreated, swap_mu
         total_stake += RSVP_Event_module_scope.Stake_Check(i)[0]
     assert total_stake == RSVP_Event_module_scope.total_stake()[0]
 
-def test_multiple_stake_reward(accounts, RSVP_Event_module_scope, EventCreated):
+def test_multiple_stake_reward(RSVP_Event_module_scope, EventCreated):
     total_unclaimed_0 = RSVP_Event_module_scope.total_unclaimed_reward().return_value[0]
     chain.sleep(60*60) # 1 hr pass
     assert total_unclaimed_0 < RSVP_Event_module_scope.total_unclaimed_reward().return_value[0]
@@ -39,8 +39,11 @@ def test_multiple_stake_check_in(accounts, RSVP_Event_module_scope, EventCreated
     assert chain.time() > RSVP_Event_module_scope.end_time()
     for i in accounts:
         initial_balance = RSVP_Event_module_scope.balanceOf(i) + RSVP_Event_module_scope.Stake_Check(i)[0]
+        chain.sleep(1)
         _reward = RSVP_Event_module_scope.Reward_Check({'from':i}).return_value[0]
+        chain.sleep(1)
         RSVP_Event_module_scope.Check_in({'from':i})
+        chain.sleep(1)
         assert RSVP_Event_module_scope.balanceOf(i) == initial_balance + _reward
 
 def test_multiple_stake_after_check_in(accounts, RSVP_Event_module_scope, EventCreated):
