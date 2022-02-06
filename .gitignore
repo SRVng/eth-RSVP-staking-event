@@ -1,10 +1,14 @@
 __pycache__
+.pytest_cache
 .env
 .history
 .hypothesis/
 .gittoken
+
 build/
 reports/
+app/
+contracts backup/
+
 abi.json
 RSVP.json
-app
