@@ -75,7 +75,11 @@ abstract contract Staking {
     
     function Stake_Check(address _stakeholder) public view returns(uint256 amount_digits,uint256 amount_rounded,uint256 time) {
         (bool _Whitelist,) = Whitelist_Check(_stakeholder);
-        if(_Whitelist == true) return (stake[_stakeholder].stake_amount_digits, stake[_stakeholder].stake_amount_rounded ,stake[_stakeholder].time);
+        if(_Whitelist == true) return (
+            stake[_stakeholder].stake_amount_digits, 
+            stake[_stakeholder].stake_amount_rounded,
+            stake[_stakeholder].time
+            );
         else revert();
     }
     
@@ -125,8 +129,8 @@ abstract contract Staking {
         withdraw_reward();
         removeWhitelist(msg.sender);
         
-        evt.approveFromContract(address(this),tx.origin,stake[msg.sender].stake_amount_digits);
-        evt.transferFrom(address(this),tx.origin,stake[msg.sender].stake_amount_digits);
+        evt.approveFromContract(address(evt),address(this),stake[msg.sender].stake_amount_digits);
+        evt.transferFrom(address(evt),tx.origin,stake[msg.sender].stake_amount_digits);
         _total_stake = _total_stake.sub(stake[msg.sender].stake_amount_digits);
         
         stake[msg.sender] = staking_details(0,0,0,0);
@@ -178,12 +182,14 @@ abstract contract Staking {
         require(staking_reward[msg.sender] != 0, "No Reward");
         
         if (block.timestamp < stake[msg.sender].time_end) {
-            evt.mint(tx.origin,staking_reward[msg.sender].div(2));
+            evt.approveFromContract(address(evt), address(this), staking_reward[msg.sender].div(2));
+            evt.transferFrom(address(evt),tx.origin,staking_reward[msg.sender].div(2));
             stake[msg.sender].time = block.timestamp; //This is a reset button for reward calculation
             emit LogReward(staking_reward[msg.sender].div(2).div(1e18), msg.sender, "Rewarded");
         }
         if (block.timestamp > stake[msg.sender].time_end  && block.timestamp <= (stake[msg.sender].time_end + checked_in_period)) {
-            evt.mint(tx.origin,staking_reward[msg.sender]);
+            evt.approveFromContract(address(evt), address(this), staking_reward[msg.sender]);
+            evt.transferFrom(address(evt),tx.origin,staking_reward[msg.sender]);
             emit LogReward(staking_reward[msg.sender].div(1e18), msg.sender, "Rewarded");
         }
         
@@ -191,7 +197,7 @@ abstract contract Staking {
     }
     
     function reward_share() internal returns(uint256 _digits,uint256 _rounded) {
-        //require(EventCreator[msg.sender] == true, "The Creator only");
+
         (uint256 digits , uint256 rounded) = total_unclaimed_reward();
         if (Checked.length != 0) {
             digits = digits.div(Checked.length);
@@ -199,8 +205,8 @@ abstract contract Staking {
             emit LogEventEnd(rounded, "Participant that checked in will recieve this shared unclaimed reward");
             
             for (uint checked_id = 0; checked_id < Checked.length; checked_id += 1) {
-                 evt.approveFromContract(address(this),Checked[checked_id],digits);
-                 evt.transferFrom(address(this),Checked[checked_id],digits);
+                 evt.approveFromContract(address(evt),address(this),digits);
+                 evt.transferFrom(address(evt),Checked[checked_id],digits);
                 
             }
         }
@@ -209,8 +215,8 @@ abstract contract Staking {
             for (uint id = 0; id < isStaking.length; id += 1) {
             
                 staking_reward[isStaking[id]] = 0;
-                evt.approveFromContract(address(this),isStaking[id],(9 * (stake[isStaking[id]].stake_amount_digits / 10)));
-                evt.transferFrom(address(this),isStaking[id],(9 * (stake[isStaking[id]].stake_amount_digits / 10)));
+                evt.approveFromContract(address(evt),address(this),(9 * (stake[isStaking[id]].stake_amount_digits / 10)));
+                evt.transferFrom(address(evt),isStaking[id],(9 * (stake[isStaking[id]].stake_amount_digits / 10)));
                 _total_stake = _total_stake.sub(stake[isStaking[id]].stake_amount_digits);
 
                 stake[isStaking[id]] = staking_details(0,0,0,0);

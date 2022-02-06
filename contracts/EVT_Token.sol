@@ -10,6 +10,10 @@ import '../interfaces/IEVT.sol';
 contract EVT_Token is IEVT,ERC20('EVENT','EVT'), Ownable {
     using SafeMath for uint256;
 
+    constructor (uint256 initial_mint) {
+        mint(address(this), initial_mint);
+    }
+
     //Primary ERC20 Function
     
     function mint(address receiver, uint256 amount) public onlyOwner returns (uint256 amount_minted) {
