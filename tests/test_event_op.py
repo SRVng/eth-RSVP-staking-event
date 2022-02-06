@@ -6,7 +6,7 @@ w3 = web3.Web3(web3.Web3.HTTPProvider('http://127.0.0.1:8545'))
 creator_swap = '1 ether'
 creator_stake = 100
 
-def test_event_initial_status(RSVP_Event_module_scope):
+def test_event_initial_status(Token_module_scope, RSVP_Event_module_scope):
     Waiting = 0
     Ended = 1
     assert RSVP_Event_module_scope.event_status() == Ended

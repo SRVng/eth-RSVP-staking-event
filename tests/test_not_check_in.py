@@ -4,9 +4,9 @@ from brownie.test import given, strategy
 
 w3 = web3.Web3(web3.Web3.HTTPProvider('http://127.0.0.1:8545'))
 
-def test_multiple_stake_and_time_skip(accounts, RSVP_Event_module_scope, EventCreated, swap_multiple):
+def test_multiple_stake_and_time_skip(accounts, Token_module_scope,RSVP_Event_module_scope, EventCreated, swap_multiple):
     for i in accounts[1:]:
-        balances = RSVP_Event_module_scope.EVT_balanceOf(i)
+        balances = Token_module_scope.balanceOf(i) / 1e18
         RSVP_Event_module_scope.RSVP(balances, {'from':i})
     chain.sleep(24 * 60 * 60) # 24 hr pass
     assert chain.time() > RSVP_Event_module_scope.end_time()
@@ -27,13 +27,13 @@ def test_multiple_stake_after_check_in(accounts, RSVP_Event_module_scope, EventC
             if i >= (len(accounts) - 3):
                 RSVP_Event_module_scope.RSVP(1, {'from':accounts[i]})
 
-def test_multiple_stake_reward_share(accounts, RSVP_Event_module_scope, EventCreated):
+def test_multiple_stake_reward_share(accounts, Token_module_scope, RSVP_Event_module_scope, EventCreated):
     chain.sleep(2*60*60)
     wallet_balances = {}
     stake_balances = {}
 
     for i in accounts:
-        wallet_balances[i] = RSVP_Event_module_scope.balanceOf(i)
+        wallet_balances[i] = Token_module_scope.balanceOf(i)
     for i in accounts[-3:]:
         stake_balances[i] = RSVP_Event_module_scope.Stake_Check(i)[0]
 
@@ -44,9 +44,9 @@ def test_multiple_stake_reward_share(accounts, RSVP_Event_module_scope, EventCre
     for i in range(len(accounts)):
         addr = accounts[i]
         if i < (len(accounts) - 3):
-            assert RSVP_Event_module_scope.balanceOf(addr) == wallet_balances[addr] + share_rewards, i
+            assert Token_module_scope.balanceOf(addr) == wallet_balances[addr] + share_rewards, i
         if i >= (len(accounts) - 3):
-            assert RSVP_Event_module_scope.balanceOf(addr) == wallet_balances[addr] + (0.9 * stake_balances[addr])
+            assert Token_module_scope.balanceOf(addr) == wallet_balances[addr] + (0.9 * stake_balances[addr])
 
 def test_multiple_stake_pool_cleared(accounts, RSVP_Event_module_scope):
     assert RSVP_Event_module_scope.total_unclaimed_reward().return_value[0] == 0

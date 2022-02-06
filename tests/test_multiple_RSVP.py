@@ -10,10 +10,10 @@ w3 = web3.Web3(web3.Web3.HTTPProvider('http://127.0.0.1:8545'))
     # 3 : End the first event and create new, do everything the same
     # 4 : Measure the reward rate ex: 2 person stake rate > 5 person stake
 
-def test_multiple_stake(accounts, RSVP_Event_module_scope, EventCreated, swap_multiple):
+def test_multiple_stake(accounts, Token_module_scope, RSVP_Event_module_scope, EventCreated, swap_multiple):
     total_stake = RSVP_Event_module_scope.total_stake()[0] #Stake of event creator
     for i in accounts[1:]:
-        balances = RSVP_Event_module_scope.EVT_balanceOf(i)
+        balances = Token_module_scope.balanceOf(i) / 1e18
         RSVP_Event_module_scope.RSVP(balances, {'from':i})
         total_stake += RSVP_Event_module_scope.Stake_Check(i)[0]
     assert total_stake == RSVP_Event_module_scope.total_stake()[0]
@@ -23,28 +23,29 @@ def test_multiple_stake_reward(RSVP_Event_module_scope, EventCreated):
     chain.sleep(60*60) # 1 hr pass
     assert total_unclaimed_0 < RSVP_Event_module_scope.total_unclaimed_reward().return_value[0]
 
-def test_multiple_reward_claim(accounts, RSVP_Event_module_scope, EventCreated):
+def test_multiple_reward_claim(accounts, Token_module_scope, RSVP_Event_module_scope, EventCreated):
     chain.sleep(6*60*60) # 7 hr pass
-    for i in accounts[:5]:
+    # Test killed when use accounts[:5] may be memory problem
+    for i in accounts[:2]:
         initial_unclaimed = RSVP_Event_module_scope.total_unclaimed_reward().return_value[1]
         individual_reward = RSVP_Event_module_scope.Reward_Check({'from':i}).return_value[1]
-        individual_balance = RSVP_Event_module_scope.EVT_balanceOf(i)
+        individual_balance = Token_module_scope.balanceOf(i) / 1e18
         RSVP_Event_module_scope.withdraw_reward({'from':i})
         assert RSVP_Event_module_scope.Reward_Check({'from':i}).return_value[1] == 0
         assert RSVP_Event_module_scope.total_unclaimed_reward().return_value[1] == initial_unclaimed - individual_reward
-        assert RSVP_Event_module_scope.EVT_balanceOf(i) - (individual_balance + (individual_reward / 2)) <= 1
+        assert (Token_module_scope.balanceOf(i) / 1e18) - (individual_balance + (individual_reward / 2)) <= 1
 
-def test_multiple_stake_check_in(accounts, RSVP_Event_module_scope, EventCreated):
+def test_multiple_stake_check_in(accounts, Token_module_scope ,RSVP_Event_module_scope, EventCreated):
     chain.sleep(17*60*60) #24 hr pass
     assert chain.time() > RSVP_Event_module_scope.end_time()
     for i in accounts:
-        initial_balance = RSVP_Event_module_scope.balanceOf(i) + RSVP_Event_module_scope.Stake_Check(i)[0]
+        initial_balance = Token_module_scope.balanceOf(i) + RSVP_Event_module_scope.Stake_Check(i)[0]
         chain.sleep(1)
         _reward = RSVP_Event_module_scope.Reward_Check({'from':i}).return_value[0]
         chain.sleep(1)
         RSVP_Event_module_scope.Check_in({'from':i})
         chain.sleep(1)
-        assert RSVP_Event_module_scope.balanceOf(i) == initial_balance + _reward
+        assert Token_module_scope.balanceOf(i) == initial_balance + _reward
 
 def test_multiple_stake_after_check_in(accounts, RSVP_Event_module_scope, EventCreated):
     for i in range(len(accounts)):
