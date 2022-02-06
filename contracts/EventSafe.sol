@@ -7,7 +7,6 @@ contract EventSafe {
     uint256 private constant fee = 0.1 ether; // 100m gwei
     
     //Mapping
-    mapping(address => bool) EventCreator;
     mapping(address => bool) depositor;
     
     //Function
@@ -28,10 +27,7 @@ contract EventSafe {
     
     function return_collateral(address payable wallet) internal {
         require(wallet == msg.sender, "You cannot withdraw others wallet");
-        require(EventCreator[wallet] == true, "You are not the event's creator");
         wallet.transfer(fee);
-        
-        EventCreator[msg.sender] = false;
     }
     
     //Event

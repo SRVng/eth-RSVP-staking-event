@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import './EVT_Token.sol';
 import './EventSafe.sol';
 import './Staking.sol';
+import './CreatorERC721.sol';
 
 // Idea : Event Staking (Challenge from https://ethhole.com/challenge)
 // Write a program that lets people pay a small amount, RSVP for an event, and if they don’t show up then everyone who did shares in the reward. 
@@ -25,6 +26,8 @@ contract RSVP_Event is Staking,EventSafe {
     string[] internal OngoingEvent;
     Event_Detail public event_details;
     EventStatus public event_status;
+    CreatorERC721 public creatorERC721;
+    address public owner;
     
     //struct
     struct Event_Detail {
@@ -38,8 +41,10 @@ contract RSVP_Event is Staking,EventSafe {
     mapping(address => bool) attendance;
 
     //When run the contract there should not be any ongoing event
-    constructor(EVT_Token _evt) Staking(_evt) {
+    constructor(EVT_Token _evt, CreatorERC721 _creatorERC721, address _owner) Staking(_evt) {
         event_status = EventStatus.Ended;
+        creatorERC721 = _creatorERC721;
+        owner = _owner;
     }
     
     function RSVP_Create(string memory event_name, uint256 time_end, uint256 _stake) public payable {
@@ -52,11 +57,24 @@ contract RSVP_Event is Staking,EventSafe {
         event_details = Event_Detail(event_name,block.timestamp,time_end, msg.sender);
         event_status = EventStatus.Waiting;
         OngoingEvent.push(event_name);
-        EventCreator[msg.sender] = true;
+
+        //NFT Contract
+        getNFTfromContract();
+        giveCreatorNFT(msg.sender);
         
         //Stake
         RSVP(_stake);
         emit LogEvent(event_name,"RSVP Event Created");
+    }
+
+    function getNFTfromContract() private {
+        creatorERC721.setApprovalForContract(address(this), true);
+        creatorERC721.transferFrom(address(creatorERC721), address(this), 0);
+    }
+
+    function giveCreatorNFT(address creator) private {
+        creatorERC721.transferFrom(address(this), creator, 0);
+        creatorERC721.setApprovalForCreator(tx.origin, address(this), true);
     }
     
     function ongoing_event() public view returns(string memory event_name, uint256 start_from, uint256 until, address creator) {
@@ -73,7 +91,7 @@ contract RSVP_Event is Staking,EventSafe {
     
     function RSVP(uint256 _stake) public {
         require(event_status == EventStatus.Waiting, "There's no ongoing event");
-        require(block.timestamp < event_details.time_end || EventCreator[msg.sender] == true, "It's check in period");
+        require(block.timestamp < event_details.time_end || creatorERC721.balanceOf(msg.sender) == 1, "It's check in period");
         stake_once[msg.sender] = true;
         
         deposit_stake(_stake);
@@ -93,11 +111,37 @@ contract RSVP_Event is Staking,EventSafe {
     }
     
     function RSVP_End(address payable your_address) public returns(uint256 shared_amount) {
-        require(EventCreator[msg.sender] == true, "The Creator only");
+        require(creatorERC721.balanceOf(msg.sender) == 1, "The Creator only");
         require(block.timestamp > (event_details.time_end + checked_in_period), "Please wait");
         
         (uint256 _digits,) = reward_share();
         return_collateral(your_address);
+        getNFTback(false);
+        
+        delete event_details;
+        event_status = EventStatus.Ended;
+        OngoingEvent.pop();
+        
+        return(_digits);
+    }
+
+    function getNFTback(bool isOwner) private {
+        if (!isOwner) {
+            creatorERC721.transferFrom(tx.origin, address(creatorERC721), 0);
+            creatorERC721.setApprovalForCreator(event_details.creator, address(this), false);
+        } else {
+            creatorERC721.transferFrom(event_details.creator, address(creatorERC721), 0);
+            creatorERC721.setApprovalForCreator(event_details.creator, address(this), false);
+        }
+    }
+
+    // This function should be remove in production
+    function Force_End(address payable your_address) public returns(uint256 shared_amount) {
+        require(creatorERC721.balanceOf(msg.sender) == 1 || msg.sender == owner, "The Creator only");
+        
+        (uint256 _digits,) = reward_share();
+        return_collateral(your_address);
+        getNFTback(true);
         
         delete event_details;
         event_status = EventStatus.Ended;

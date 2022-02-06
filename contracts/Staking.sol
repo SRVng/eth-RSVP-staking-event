@@ -13,7 +13,7 @@ abstract contract Staking {
     RSVP_Event rsvp_contract;
     EVT_Token public evt;
     uint256 public reward_rate_per_sec = 1;
-    uint256 public constant checked_in_period = 1 hours; //for testing purpose
+    uint256 public constant checked_in_period = 10 minutes; //for testing purpose
     uint256 public _total_stake; // Using this instead of balanceOf(address(this))
     uint256 public _unclaimed_reward;
     
