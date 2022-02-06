@@ -9,7 +9,7 @@ import './Staking.sol';
 // Write a program that lets people pay a small amount, RSVP for an event, and if they don’t show up then everyone who did shares in the reward. 
 // A person can create and event, and check people in. If someone RSVPs but doesn't get checked in they lose their staked ETH.
 
-contract RSVP_Event is EVT_Token,Staking,EventSafe {
+contract RSVP_Event is Staking,EventSafe {
     using SafeMath for uint256;
 
     //Predefined value in enum
@@ -38,9 +38,8 @@ contract RSVP_Event is EVT_Token,Staking,EventSafe {
     mapping(address => bool) attendance;
 
     //When run the contract there should not be any ongoing event
-    constructor(uint256 initial_mint) {
+    constructor(EVT_Token _evt) Staking(_evt) {
         event_status = EventStatus.Ended;
-        mint(initial_mint); // mint(n) >> _mint(address(this), n.mul(1e18));
     }
     
     function RSVP_Create(string memory event_name, uint256 time_end, uint256 _stake) public payable {

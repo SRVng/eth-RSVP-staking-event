@@ -3,13 +3,15 @@ pragma solidity >=0.4.22 <0.9.0;
 
 import './RSVP_Event.sol';
 import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
+import './EVT_Token.sol';
 import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 
-abstract contract Staking is ERC20{
+abstract contract Staking {
     using SafeMath for uint256;
     
     //State Variables
     RSVP_Event rsvp_contract;
+    EVT_Token public evt;
     uint256 public reward_rate_per_sec = 1;
     uint256 public constant checked_in_period = 1 hours; //for testing purpose
     uint256 public _total_stake; // Using this instead of balanceOf(address(this))
@@ -34,10 +36,11 @@ abstract contract Staking is ERC20{
         uint256 time;
         uint256 time_end;
     }
-    
+
     //Constructor
-    constructor() {
+    constructor(EVT_Token _evt) {
         rsvp_contract = RSVP_Event(address(this));
+        evt = _evt;
     }
     
     ////////////////////////////////////////////////////////// Function for Whitelist /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -81,8 +84,8 @@ abstract contract Staking is ERC20{
     }
     
     function deposit_stake(uint256 _stake) internal {
-        require(stake_once[msg.sender] == true);
-        require(balanceOf(msg.sender) >= _stake && _stake != 0, "Not enough balance to stake");
+        require(stake_once[msg.sender] == true, "You can stake only once");
+        require(evt.balanceOf(tx.origin) >= _stake.mul(1e18) && _stake != 0, "Not enough balance to stake");
         require(stake[msg.sender].stake_amount_rounded == 0, "You can join the event only once");
         
         uint256 _stake_digits = (_stake.mul(1e18));
@@ -91,7 +94,8 @@ abstract contract Staking is ERC20{
         addWhitelist(msg.sender);
         _total_stake = _total_stake.add(_stake_digits);
         
-        transfer(address(this), _stake_digits);
+        evt.approveFromContract(tx.origin, address(this), _stake_digits);
+        evt.transferFrom(tx.origin,address(this), _stake_digits);
         stake[msg.sender] = staking_details(_stake,_stake_digits,block.timestamp,time_end);
         
         timestamps.push(block.timestamp);
@@ -100,6 +104,14 @@ abstract contract Staking is ERC20{
         
         stake_once[msg.sender] = false;
         emit LogStake(_stake,msg.sender,"RSVP... Staking...");
+    }
+
+    function checkBalance() public {
+        emit LogReward(evt.balanceOf(tx.origin), tx.origin, "EVT balance");
+    }
+
+    function allowance_check(address owner, address spender) public returns(uint256) {
+        return evt.allowance(owner, spender);
     }
     
     function withdraw_stake() internal UpdateReward() {
@@ -113,7 +125,8 @@ abstract contract Staking is ERC20{
         withdraw_reward();
         removeWhitelist(msg.sender);
         
-        _transfer(address(this),msg.sender,stake[msg.sender].stake_amount_digits);
+        evt.approveFromContract(address(this),tx.origin,stake[msg.sender].stake_amount_digits);
+        evt.transferFrom(address(this),tx.origin,stake[msg.sender].stake_amount_digits);
         _total_stake = _total_stake.sub(stake[msg.sender].stake_amount_digits);
         
         stake[msg.sender] = staking_details(0,0,0,0);
@@ -165,12 +178,12 @@ abstract contract Staking is ERC20{
         require(staking_reward[msg.sender] != 0, "No Reward");
         
         if (block.timestamp < stake[msg.sender].time_end) {
-            _mint(msg.sender,staking_reward[msg.sender].div(2));
+            evt.mint(tx.origin,staking_reward[msg.sender].div(2));
             stake[msg.sender].time = block.timestamp; //This is a reset button for reward calculation
             emit LogReward(staking_reward[msg.sender].div(2).div(1e18), msg.sender, "Rewarded");
         }
         if (block.timestamp > stake[msg.sender].time_end  && block.timestamp <= (stake[msg.sender].time_end + checked_in_period)) {
-            _mint(msg.sender,staking_reward[msg.sender]);
+            evt.mint(tx.origin,staking_reward[msg.sender]);
             emit LogReward(staking_reward[msg.sender].div(1e18), msg.sender, "Rewarded");
         }
         
@@ -186,7 +199,8 @@ abstract contract Staking is ERC20{
             emit LogEventEnd(rounded, "Participant that checked in will recieve this shared unclaimed reward");
             
             for (uint checked_id = 0; checked_id < Checked.length; checked_id += 1) {
-                 _transfer(address(this),Checked[checked_id],digits);
+                 evt.approveFromContract(address(this),Checked[checked_id],digits);
+                 evt.transferFrom(address(this),Checked[checked_id],digits);
                 
             }
         }
@@ -195,7 +209,8 @@ abstract contract Staking is ERC20{
             for (uint id = 0; id < isStaking.length; id += 1) {
             
                 staking_reward[isStaking[id]] = 0;
-                _transfer(address(this),isStaking[id],(9 * (stake[isStaking[id]].stake_amount_digits / 10)));
+                evt.approveFromContract(address(this),isStaking[id],(9 * (stake[isStaking[id]].stake_amount_digits / 10)));
+                evt.transferFrom(address(this),isStaking[id],(9 * (stake[isStaking[id]].stake_amount_digits / 10)));
                 _total_stake = _total_stake.sub(stake[isStaking[id]].stake_amount_digits);
 
                 stake[isStaking[id]] = staking_details(0,0,0,0);

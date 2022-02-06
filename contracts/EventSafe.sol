@@ -12,7 +12,7 @@ contract EventSafe {
     
     //Function
     function deposit() internal returns(uint256 collateral) {
-        require(depositor[msg.sender] == true);
+        require(depositor[msg.sender] == true, "Error: 1");
         bool currency_check = false;
         
         if (msg.value == fee) {
