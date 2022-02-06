@@ -7,7 +7,7 @@ w3 = web3.Web3(web3.Web3.HTTPProvider('http://127.0.0.1:8545'))
 creator_swap = '1 ether'
 creator_stake = 100
 
-def test_staking_one_user_1(accounts, Token_module_scope, RSVP_Event_module_scope, EventCreated):
+def test_staking_one_user_1(accounts, creatorNFT_module_scope, Token_module_scope, RSVP_Event_module_scope, EventCreated):
     addr = accounts[1]
     amount = 300
     Token_module_scope.swap({'from':addr, 'value':'3 ether'})

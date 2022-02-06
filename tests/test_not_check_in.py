@@ -4,7 +4,7 @@ from brownie.test import given, strategy
 
 w3 = web3.Web3(web3.Web3.HTTPProvider('http://127.0.0.1:8545'))
 
-def test_multiple_stake_and_time_skip(accounts, Token_module_scope,RSVP_Event_module_scope, EventCreated, swap_multiple):
+def test_multiple_stake_and_time_skip(accounts,creatorNFT_module_scope, Token_module_scope,RSVP_Event_module_scope, EventCreated, swap_multiple):
     for i in accounts[1:]:
         balances = Token_module_scope.balanceOf(i) / 1e18
         RSVP_Event_module_scope.RSVP(balances, {'from':i})

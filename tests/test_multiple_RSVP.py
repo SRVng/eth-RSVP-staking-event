@@ -10,7 +10,7 @@ w3 = web3.Web3(web3.Web3.HTTPProvider('http://127.0.0.1:8545'))
     # 3 : End the first event and create new, do everything the same
     # 4 : Measure the reward rate ex: 2 person stake rate > 5 person stake
 
-def test_multiple_stake(accounts, Token_module_scope, RSVP_Event_module_scope, EventCreated, swap_multiple):
+def test_multiple_stake(accounts,creatorNFT_module_scope, Token_module_scope, RSVP_Event_module_scope, EventCreated, swap_multiple):
     total_stake = RSVP_Event_module_scope.total_stake()[0] #Stake of event creator
     for i in accounts[1:]:
         balances = Token_module_scope.balanceOf(i) / 1e18
