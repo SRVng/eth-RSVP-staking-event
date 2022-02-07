@@ -22,5 +22,5 @@ def fetch_abi():
             "CONTRACT_ABI": contractList[i][-1].abi
         }
 
-        with open(('./app/src/' + contractAbiList[i] + '.json'), 'w', encoding='utf-8') as f:
+        with open(('./app/src/abi' + contractAbiList[i] + '.json'), 'w', encoding='utf-8') as f:
             json.dump(struct, f, indent=3)
