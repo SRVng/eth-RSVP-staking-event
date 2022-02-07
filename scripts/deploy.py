@@ -1,11 +1,10 @@
 import json
-from brownie import RSVP_Event, EVT_Token, Faucet, CreatorERC721, accounts
+from brownie import RSVP_Event, EVT_Token, CreatorERC721, accounts
 
 def main():
     myAccount = accounts.load('RSVP.json')
 
     token = EVT_Token.deploy(10000000 * 1e18, {'from': myAccount})
-    faucet = Faucet.deploy({'from': myAccount})
     NFT = CreatorERC721.deploy({'from': myAccount})
     instance =  RSVP_Event.deploy(token, NFT, myAccount, {'from':myAccount})
 
@@ -13,8 +12,8 @@ def main():
 
 def fetch_abi():
 
-    contractList = [EVT_Token, Faucet, CreatorERC721, RSVP_Event]
-    contractAbiList = ['tokenAbi', 'faucetAbi', 'nftAbi', 'rsvpAbi']
+    contractList = [EVT_Token, CreatorERC721, RSVP_Event]
+    contractAbiList = ['tokenAbi', 'nftAbi', 'rsvpAbi']
 
     for i in range(len(contractList)):
         struct = {

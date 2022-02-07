@@ -49,7 +49,7 @@ abstract contract Staking {
         return isStaking;
     }
     
-    function Whitelist_Check(address _address) private view returns(bool, uint index) {
+    function Whitelist_Check(address _address) public view returns(bool, uint index) {
         for(uint256 id = 0; id < isStaking.length; id += 1) {
             if (isStaking[id] == _address) return(true,id);
         }
@@ -171,7 +171,8 @@ abstract contract Staking {
     
     //People that participate and decrease their risk by claiming the reward before the event but the reward is halved.
     function withdraw_reward() public UpdateReward() {
-        require(staking_reward[msg.sender] != 0, "No Reward");
+        (bool _Whitelist,) = Whitelist_Check(msg.sender);
+        require(_Whitelist == true, "You didn't join the event");
         
         if (block.timestamp < stake[msg.sender].time_end) {
             evt.approveFromContract(address(evt), address(this), staking_reward[msg.sender].div(2));

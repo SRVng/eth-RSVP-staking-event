@@ -17,10 +17,6 @@ def RSVP_Event_module_scope(EVT_Token,RSVP_Event, CreatorERC721, accounts):
     return RSVP_Event.deploy(EVT_Token[-1],CreatorERC721[-1], accounts[0], {'from':accounts[0]})
 
 @pytest.fixture(scope='module')
-def Faucet_module_scope(Faucet):
-    return Faucet.deploy({'from': accounts[0]})
-
-@pytest.fixture(scope='module')
 def creatorNFT_module_scope(CreatorERC721):
     return CreatorERC721.deploy({'from': accounts[0]})
 
