@@ -109,14 +109,6 @@ abstract contract Staking {
         stake_once[msg.sender] = false;
         emit LogStake(_stake,msg.sender,"RSVP... Staking...");
     }
-
-    function checkBalance() public {
-        emit LogReward(evt.balanceOf(tx.origin), tx.origin, "EVT balance");
-    }
-
-    function allowance_check(address owner, address spender) public returns(uint256) {
-        return evt.allowance(owner, spender);
-    }
     
     function withdraw_stake() internal UpdateReward() {
         (bool _Whitelist,) = Whitelist_Check(msg.sender);
